@@ -132,7 +132,7 @@ def plot_loss_metric(history, params, _trial_id):
     plt.yticks(fontsize=12)
 
     plt.tight_layout()
-    plt.savefig(f'optimize/loss_val_imgs/{variable}/{state}/{variable}_{state}_0_id_{_trial_id-1}.png')        
+    plt.savefig(f'optimize/loss_val_imgs/{variable}/{state}/{variable}_{state}_id_{_trial_id-1}.png')        
 
 
 def objective(trial):
