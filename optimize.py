@@ -16,7 +16,7 @@ args = parser.parse_args()
 state = args.state
 variable = args.variable
 EPOCHS = 100
-BATCH_SIZE = 4
+BATCH_SIZE = 32
 
 def create_optimizer(trial):
     kwargs = {}
@@ -69,12 +69,12 @@ def get_data():
 def create_model(trial):
   kernel_sizes = [(2,2),(2,3),(3,2),(3,3),(2,4),(4,2),(3,4),(4,3),(4,4)]
   kz_selected = trial.suggest_categorical("kernel_size", kernel_sizes)
-  alpha_optiones = [.2, .3, .5]
+
   model = tf.keras.models.Sequential(name=f'CNN-Weather-Forecasting-Optimizing-Parameters')
 
   model.add(tf.keras.layers.Input(shape=(73,144,1), name='input')) #input
 
-  model.add(tf.keras.layers.Conv2D(filters=32, kernel_size= kz_selected, padding='same', activation='relu', name='conv2D_1'))
+  model.add(tf.keras.layers.Conv2D(filters=16, kernel_size= kz_selected, padding='same', activation='relu', name='conv2D_1'))
   model.add(tf.keras.layers.AveragePooling2D(pool_size=(2,2),padding='same', name='AvP_1'))
 
   model.add(tf.keras.layers.Conv2D(filters=32, kernel_size= kz_selected, padding='same', activation='relu', name='conv2D_2'))
@@ -83,10 +83,10 @@ def create_model(trial):
   model.add(tf.keras.layers.Conv2D(filters=64, kernel_size= kz_selected, padding='same', activation='relu', name='conv2D_3'))
   model.add(tf.keras.layers.AveragePooling2D(pool_size=(2,2),padding='same', name='AvP_3'))
 
-  model.add(tf.keras.layers.Conv2D(filters=64, kernel_size= kz_selected, padding='same', activation='relu', name='conv2D_4'))
+  model.add(tf.keras.layers.Conv2D(filters=128, kernel_size= kz_selected, padding='same', activation='relu', name='conv2D_4'))
   model.add(tf.keras.layers.AveragePooling2D(pool_size=(2,2),padding='same', name='AvP_4'))
 
-  model.add(tf.keras.layers.Conv2DTranspose(filters=64, kernel_size= kz_selected, padding='same', activation='relu', name='conv2DT_1'))
+  model.add(tf.keras.layers.Conv2DTranspose(filters=128, kernel_size= kz_selected, padding='same', activation='relu', name='conv2DT_1'))
   model.add(tf.keras.layers.UpSampling2D(size=(2,2), name='UpS2D_1'))
 
 
@@ -98,7 +98,7 @@ def create_model(trial):
   model.add(tf.keras.layers.UpSampling2D(size=(2,2), name='UpS2D_3'))
   model.add(tf.keras.layers.Cropping2D(cropping=((1,0),(0,0)), name='Cropping_3'))
 
-  model.add(tf.keras.layers.Conv2DTranspose(filters=32, kernel_size= kz_selected, padding='same', activation='relu', name='conv2DT_4'))
+  model.add(tf.keras.layers.Conv2DTranspose(filters=16, kernel_size= kz_selected, padding='same', activation='relu', name='conv2DT_4'))
   model.add(tf.keras.layers.UpSampling2D(size=(2,2), name='UpS2D_4'))
   model.add(tf.keras.layers.Cropping2D(cropping=((1,0),(0,0)), name='Cropping_4'))
 
