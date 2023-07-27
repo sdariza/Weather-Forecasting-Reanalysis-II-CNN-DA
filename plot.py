@@ -4,7 +4,7 @@ from mpl_toolkits.basemap import Basemap
 import numpy as np
 
 
-nc_data = nc.Dataset('./air0.nc')
+nc_data = nc.Dataset('./data-training/0/air0.nc')
 
 lats = nc_data.variables['latitude'][:].data
 lons = nc_data.variables['longitude'][:].data
