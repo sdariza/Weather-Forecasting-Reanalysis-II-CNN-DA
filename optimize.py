@@ -164,7 +164,7 @@ def objective(trial):
     optimizer = create_optimizer(trial)
     early_stop = EarlyStopping(monitor='val_loss', patience=5, mode='auto', verbose=1)
     model.compile(optimizer=optimizer,loss=tf.keras.losses.MeanSquaredError(), metrics=tf.keras.losses.MeanAbsoluteError())
-    history = model.fit(train_ds, validation_data=valid_ds, epochs=EPOCHS, callbacks=[early_stop], verbose=2)
+    history = model.fit(train_ds, validation_data=valid_ds, epochs=EPOCHS, callbacks=[early_stop], verbose=0)
     plot_loss_metric(history, trial.__dict__['_cached_frozen_trial'].params,trial.__dict__['_trial_id'])
     mae = model.evaluate(test_ds)[1]
     if np.isnan(mae):
