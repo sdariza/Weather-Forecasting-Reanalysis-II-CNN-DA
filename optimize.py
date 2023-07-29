@@ -71,13 +71,14 @@ def get_data():
 def create_model(trial):
   kernel_sizes = [(2,2),(2,3),(3,2),(3,3),(2,4),(4,2),(3,4),(4,3),(4,4)]
   kz_selected = trial.suggest_categorical("kernel_size", kernel_sizes)
-  alpha_optiones = [0.01, 0.2, 0.3, 0.5]
+  alpha_optiones = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
   alpha_selected = trial.suggest_categorical("alpha", alpha_optiones)
   model = tf.keras.models.Sequential(name=f'CNN-Weather-Forecasting-Optimizing-Parameters')
 
   model.add(tf.keras.layers.Input(shape=(73,144,1), name='input')) #input
-
+  
+#encoder
   model.add(tf.keras.layers.Conv2D(filters=16, kernel_size= kz_selected, padding='same', name='conv2D_1'))
   model.add(tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_1'))
   model.add(tf.keras.layers.AveragePooling2D(pool_size=(2,2),padding='same', name='AvP_1'))
@@ -94,6 +95,7 @@ def create_model(trial):
   model.add(tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_4'))
   model.add(tf.keras.layers.AveragePooling2D(pool_size=(2,2),padding='same', name='AvP_4'))
 
+#decoder 
   model.add(tf.keras.layers.Conv2DTranspose(filters=128, kernel_size= kz_selected, padding='same', name='conv2DT_1'))
   model.add(tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_5'))
   model.add(tf.keras.layers.UpSampling2D(size=(2,2), name='UpS2D_1'))
@@ -172,5 +174,5 @@ def objective(trial):
 
 
 if __name__ == "__main__":
-    study = optuna.create_study(study_name=f'optimizing_parameters_{variable}_{state}', storage=f'sqlite:///optimize/db/optimizing_parameters.db', load_if_exists=True)
+    study = optuna.create_study(study_name=f'optimizing_parameters_{variable}_{state}', storage=f'sqlite:///optimize/db/optimizing_parameters_state_{state}.db', load_if_exists=True)
     study.optimize(objective, n_trials=1)
