@@ -28,18 +28,25 @@ def create_optimizer(trial):
 def get_data():
 
     Xi_nc = nc.Dataset(f'data-training/{state}/{variable}{state}.nc')
-    Xi1_nc = nc.Dataset(f'data-training/{state+6}/{variable}{state+6}.nc')
     
+    if state == 18:
+        Xi1_nc = nc.Dataset(f'data-training/0/{variable}0.nc')
+    else:
+        Xi1_nc = nc.Dataset(f'data-training/{state+6}/{variable}{state+6}.nc')
+
     X = Xi_nc.variables[f'{variable}'][:].data
     Y =  Xi1_nc.variables[f'{variable}'][:].data
-
-    if variable == 'air':
-        X = X - 273.15
-        Y = Y - 273.15
 
     Xi_nc.close()
     Xi1_nc.close()
 
+    if variable == 'air':
+        X = X - 273.15
+        Y = Y - 273.15
+    
+    if state == 18:
+        X = X[:-1, ...]
+        Y = Y[1:, ...]        
 
     split_ratio_train = 0.7
     split_ratio_val = 0.2
