@@ -15,10 +15,10 @@ conda install -c conda-forge iris
 pip install basemap
 ```
 
-## Download grib2 data and create netCDF data:
+## Download .nc data and create netCDF data:
 
 ```
-python rda-download.py <start_date> <end_date> #YYYYMMDD
+python download-data.py <start_date> <end_date> #YYYY
 ```
 
 ## Install tensorflow with GPU
