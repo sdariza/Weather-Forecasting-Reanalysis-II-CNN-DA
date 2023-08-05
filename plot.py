@@ -22,7 +22,7 @@ best_model = tf.keras.models.load_model(f'./cnn-models/{state}/{variable}{state}
 
 nc_t_i = nc.Dataset(f'./test-data/{state}/{variable}{state}.nc')
 nc_t_j = nc.Dataset(f'./test-data/{state}/{variable}{state}.nc')
-
+units = nc_t_i[f'{variable}'].units
 X = nc_t_i.variables[f'{variable}'][:].data
 Y = nc_t_j.variables[f'{variable}'][:].data
 
@@ -30,9 +30,12 @@ nc_t_i.close()
 nc_t_j.close()
 
 if variable == 'air':
-    X = X.reshape(-1, 73, 144, 1) - 273.15
-    Y = Y.reshape(-1, 73, 144, 1) - 273.15
+    X = X - 273.15
+    Y = Y - 273.15
 
+if state == 18:
+    X = X[:-1, ...]
+    Y = Y[1:, ...]
 
 lons = np.linspace(0, 357.5, 144)
 lats = np.linspace(90, -90, 73)
@@ -54,10 +57,10 @@ for i in np.random.randint(0, len(X), 10):
     m.ax = ax[0]
     m.drawcoastlines(linewidth=0.5)
 
-    cax = m.contourf(lon, lat, Y[i, ..., 0], levels=100)
+    cax = m.contourf(lon, lat, Y[i, ...], levels=100)
 
     cbar = m.colorbar(cax)
-    cbar.set_label('C')
+    cbar.set_label(f'{units}')
 
     m.drawparallels(np.arange(min_lat, max_lat+1, 20),
                     labels=[1, 0, 0, 0], linewidth=0.2)
@@ -72,7 +75,7 @@ for i in np.random.randint(0, len(X), 10):
         X[i], [1, 73, 144, 1]))[0, ..., 0], levels=100)
 
     cbar = m.colorbar(cax)
-    cbar.set_label('C')
+    cbar.set_label(f'{units}')
 
     m.drawparallels(np.arange(min_lat, max_lat+1, 20),
                     labels=[1, 0, 0, 0], linewidth=0.2)
@@ -81,9 +84,9 @@ for i in np.random.randint(0, len(X), 10):
     ax[1].set_title('Estimated state')
     plt.tight_layout()
     fig.suptitle('CNN - Forecasting Global Weather', y=0.79)
-    plt.savefig(f"plots/subplot_{i}.png")
+    plt.savefig(f'plots/{state}/{variable}/subplot_{i}.png')
     plt.close(fig)
-    images.append(imageio.imread(f"plots/subplot_{i}.png"))
-imageio.mimsave("plots/subplots.gif", images, duration=1000, loop=0)
+    images.append(imageio.imread(f'plots/{state}/{variable}/subplot_{i}.png'))
+imageio.mimsave(f'plots/{state}/{variable}/{variable}{state}predictions.gif', images, duration=1000, loop=0)
 
 del X, Y

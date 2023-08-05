@@ -1,2 +1,2 @@
 *.nc
-plots/*.png
+plots/**/*.png
