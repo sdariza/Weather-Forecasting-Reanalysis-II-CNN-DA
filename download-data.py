@@ -2,7 +2,6 @@ import sys
 import os
 from urllib.request import build_opener
 from pathlib import Path
-from datetime import datetime, timedelta
 
 opener = build_opener()
 

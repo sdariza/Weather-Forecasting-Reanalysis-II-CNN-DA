@@ -17,7 +17,6 @@ for state in states:
         trials_df = study.trials_dataframe()
         best_trial_df = trials_df[trials_df['number'] == best_trial_id]
         best_trial_df = best_trial_df[['value', 'params_alpha', 'params_kernel_size', 'params_learning_rate']]
-        best_trial_df['params_kernel_size'] = best_trial_df['params_kernel_size'].apply(tuple)
         best_trial_df['state'] = state
         best_trial_df['variable'] = variable
         best_trial_dfs.append(best_trial_df)

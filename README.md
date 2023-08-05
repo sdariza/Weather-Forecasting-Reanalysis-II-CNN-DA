@@ -8,18 +8,27 @@ conda deactivate
 conda activate wf
 ```
 
-## Install main weather dependencies
+## Install main dependencies
 
 ```
 conda install -c conda-forge iris
 pip install basemap
+pip install optuna
+pip install pandas
 ```
 
-## Download .nc data and create netCDF data:
+## Install tensorflow with GPU
+[Tensorflow - Guide](https://www.tensorflow.org)
+
+
+## Download train .nc data and create netCDF data:
 
 ```
 python download-data.py <start_date> <end_date> #YYYY
 ```
 
-## Install tensorflow with GPU
-[Tensorflow - Guide](https://www.tensorflow.org)
+## Download test .nc data and create netCDF data:
+
+```
+python download-test-data.py <start_date> <end_date> #YYYY
+```
