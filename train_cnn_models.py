@@ -105,7 +105,7 @@ def get_data():
         X = X[:-1, ...]
         Y = Y[1:, ...]
 
-    split_ratio_train = 0.8
+    split_ratio_train = 0.7
     split_ratio_val = 0.2
 
     num_samples = len(X)
