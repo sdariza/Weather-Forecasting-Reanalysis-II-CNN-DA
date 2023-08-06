@@ -120,11 +120,11 @@ def get_data():
 
     train_ds = tf.data.Dataset.from_tensor_slices(
         tensors=(train_data, train_labels))
-    train_ds = train_ds.shuffle(60000).batch(batch_size=BATCH_SIZE)
+    train_ds = train_ds.shuffle(buffer_size = num_train, seed=123).batch(batch_size=BATCH_SIZE)
 
     valid_ds = tf.data.Dataset.from_tensor_slices(
         tensors=(val_data, val_labels))
-    valid_ds = valid_ds.shuffle(10000).batch(batch_size=BATCH_SIZE)
+    valid_ds = valid_ds.shuffle(buffer_size = num_val, seed=123).batch(batch_size=BATCH_SIZE)
 
     del X, Y
     return train_ds, valid_ds
