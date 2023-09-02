@@ -60,14 +60,14 @@ def create_initial_ensemble(x_b, number_of_members):
     Returns:
         np.array: initial ensemble Xb0
     """
-    x_b0 = np.vstack([x_b for _ in np.arange(number_of_members)])
+    X_b0 = np.vstack([x_b for _ in np.arange(number_of_members)])
 
     for k_t in np.arange(1, 25):
         t_h = (k_t-1) % 4
-        for e_member, _ in enumerate(x_b0):
-            x_b0[e_member, :] = forecast(x_b0[e_member, :] + 0.01 *
+        for e_member, _ in enumerate(X_b0):
+            X_b0[e_member, :] = forecast(X_b0[e_member, :] + 0.01 *
                                          np.random.randn(NUMBER_OF_VARIABLES,), t_h)
-    return x_b0
+    return X_b0
 
 
 def forecast_ensemble(x_background, state_h, number_of_members):
@@ -172,10 +172,15 @@ def plot(xcnn, xt, xa, xb):
 
 
 NUMBER_OF_MEMBERS = 100
-Xb0 = create_initial_ensemble(
-    data_state[0][0].flatten(), NUMBER_OF_MEMBERS)  # Xb0 in state 0
+x_t = data_state[0][0]
+xb = x_t.copy().astype('float32').flatten() + 0.01 * np.random.randn(NUMBER_OF_VARIABLES,)
+for k_t in np.arange(1, 25):
+    t_h = (k_t-1) % 4
+    xb = forecast(xb , t_h)
 
-P = 0.4
+Xb0 = create_initial_ensemble(xb, NUMBER_OF_MEMBERS)  # Xb0 in state 0
+
+P = 0.7
 M = round(P*NUMBER_OF_VARIABLES)
 OBSERVATION_ERROR = 0.01
 R = (OBSERVATION_ERROR**2)*np.eye(M, M)
