@@ -11,7 +11,9 @@ import cftime
 
 
 VARIABLE = 'air'
-NUMBER_OF_VARIABLES = 73*144
+N_LATS = 73
+N_LONS = 144
+NUMBER_OF_VARIABLES = N_LATS*N_LONS
 print(iris.load_cube('./test-data/6/air6.nc'))
 nc_data = []
 for state in [0,6,12,18]:
@@ -168,6 +170,24 @@ def plot(xcnn, xt, xa, xb):
     ax[1,1].set_title('Analysis')
     plt.show()
     plt.close(fig)
+
+def get_pred(Xb, r, i, j):
+    x = [] # x_i
+    val = i * N_LONS+j # predecesorNum
+    print(f'predecesores de {val}')
+    j_ = [l % N_LONS for l in range(j-r,j+r+1)] # lons dentro del radio
+    if i == 0:
+        i_ = [k % N_LATS for k in range(i,i+r+1)] # lats dentro del radio lat=90
+    elif i == N_LATS-1:
+        i_ = [k for k in range(i-r, N_LATS)] # lats dentro del rario lat=-90
+    else:
+        i_ = [k for k in range(max(0,i-r), min(N_LATS,i+r+1))] #lats dentro del radadio -90<lats<90
+    for ii in i_:
+        for jj in j_:
+            if ii*N_LONS+jj < val:
+                x.append(Xb[ii,jj])
+    print(x)
+    return x
 
 
 
