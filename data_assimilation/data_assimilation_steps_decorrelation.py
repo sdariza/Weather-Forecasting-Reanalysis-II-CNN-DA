@@ -94,15 +94,7 @@ def plot(xb, xt, xa, day, state):
     plt.close(fig)
     images.append(imageio.imread(f'./data_assimilation/plots/{VARIABLE}/subplot_{day}{state}.png'))
 
-def get_decorrelation_matrix(r):
-    L = np.zeros((73*144, 73*144))
-    for i in range(73): # lats
-        for j in range(144): # lons
-            for ii in range(73):
-                for jj in range(144):
-                    dij = np.sqrt(np.power(i-ii,2)+np.power(j-jj,2))
-                    L[i*144+j, ii*144+jj] = np.exp(-0.5*(dij)**2/r**2)
-    return L
+
 
 NUMBER_OF_MEMBERS = 50
 x0 = data_state[0][0].flatten()
@@ -121,7 +113,7 @@ Xa = np.array(Xb0.copy()).astype('float32')
 err_a = []
 err_b = []
 print("Getting decorrelation matrix...")
-L = get_decorrelation_matrix(5)
+L = np.load('./data_assimilation/decorrelation_matrices/decorrelation_r15.npy')
 print("Data assimilation steps...")
 for day in range(NUMBER_OF_ASSIMILATION_CYCLES-1):
     print(f'Day:{day}')
