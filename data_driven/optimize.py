@@ -35,8 +35,9 @@ def get_data():
 
 
 def create_model(trial):
-    kernel_sizes = [(2, 2), (2, 3), (3, 2), (3, 3), (2, 4), (4, 2), (3, 4), (4, 3), (4, 4)]
-    kz_selected = trial.suggest_categorical("kernel_size", kernel_sizes)
+    kz_selected_w = trial.suggest_int("kernel_size_w", 2, 4)
+    kz_selected_h = trial.suggest_int("kernel_size_h", 2, 4)
+    kz_selected = (kz_selected_w, kz_selected_h)
     alpha_selected = trial.suggest_float("alpha", 0.01, 0.9, log=True)
     model = tf.keras.models.Sequential(
         layers=[
@@ -46,27 +47,34 @@ def create_model(trial):
             tf.keras.layers.Conv2D(filters=16, kernel_size=kz_selected, padding='same', name='conv2D_1'),
             tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_1'),
             tf.keras.layers.AveragePooling2D(pool_size=(2, 2), padding='same', name='AvP_1'),
+
             tf.keras.layers.Conv2D(filters=32, kernel_size=kz_selected, padding='same', name='conv2D_2'),
             tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_2'),
             tf.keras.layers.AveragePooling2D(pool_size=(2, 2), padding='same', name='AvP_2'),
+
             tf.keras.layers.Conv2D(filters=64, kernel_size=kz_selected, padding='same', name='conv2D_3'),
             tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_3'),
             tf.keras.layers.AveragePooling2D(pool_size=(2, 2), padding='same', name='AvP_3'),
+
             tf.keras.layers.Conv2D(filters=128, kernel_size=kz_selected, padding='same', name='conv2D_4'),
             tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_4'),
             tf.keras.layers.AveragePooling2D(pool_size=(2, 2), padding='same', name='AvP_4'),
+
             # decoder
             tf.keras.layers.Conv2DTranspose(filters=128, kernel_size=kz_selected, padding='same', name='conv2DT_1'),
             tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_5'),
             tf.keras.layers.UpSampling2D(size=(2, 2), name='UpS2D_1'),
+
             tf.keras.layers.Conv2DTranspose(filters=64, kernel_size=kz_selected, padding='same', name='conv2DT_2'),
             tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_6'),
             tf.keras.layers.UpSampling2D(size=(2, 2), name='UpS2D_2'),
             tf.keras.layers.Cropping2D(cropping=((1, 0), (0, 0)), name='Cropping_1'),
+
             tf.keras.layers.Conv2DTranspose(filters=32, kernel_size=kz_selected, padding='same', name='conv2DT_3'),
             tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_7'),
             tf.keras.layers.UpSampling2D(size=(2, 2), name='UpS2D_3'),
             tf.keras.layers.Cropping2D(cropping=((1, 0), (0, 0)), name='Cropping_3'),
+
             tf.keras.layers.Conv2DTranspose(filters=16, kernel_size=kz_selected, padding='same', name='conv2DT_4'),
             tf.keras.layers.LeakyReLU(alpha=alpha_selected, name='act_8'),
             tf.keras.layers.UpSampling2D(size=(2, 2), name='UpS2D_4'),
@@ -125,6 +133,7 @@ def objective(trial):
     early_stop = EarlyStopping(monitor='val_loss', patience=5, mode='auto', verbose=1)
     model.compile(optimizer=optimizer, loss=tf.keras.losses.MeanSquaredError(),
                   metrics=[tf.keras.losses.MeanAbsoluteError(), tf.keras.losses.MeanSquaredError()])
+    model.summary()
     history = model.fit(train_ds, validation_data=valid_ds, epochs=EPOCHS, callbacks=[early_stop], verbose=0)
     plot_loss_metric(history, trial.__dict__['_cached_frozen_trial'].params, trial.__dict__['_trial_id'])
     _, mae, mse = model.evaluate(test_ds)
