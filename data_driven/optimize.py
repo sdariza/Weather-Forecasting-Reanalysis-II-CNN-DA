@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 
 tf.random.set_seed(123)
 import numpy as np
+
+np.random.seed(123)
 import optuna
 
 parser = argparse.ArgumentParser(prefix_chars='--')
