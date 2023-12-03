@@ -121,7 +121,8 @@ def objective(trial):
     model = create_model(trial)
     optimizer = create_optimizer(trial)
     early_stop = EarlyStopping(monitor='val_loss', patience=5, mode='auto', verbose=1)
-    model.compile(optimizer=optimizer, loss='mse', metrics=['mae', 'mse'])
+    model.compile(optimizer=optimizer, loss=tf.keras.losses.MeanSquaredError(),
+                  metrics=[tf.keras.losses.MeanAbsoluteError(), tf.keras.losses.MeanSquaredError()])
     history = model.fit(train_ds, validation_data=valid_ds, epochs=EPOCHS, callbacks=[early_stop], verbose=0)
     plot_loss_metric(history, trial.__dict__['_cached_frozen_trial'].params, trial.__dict__['_trial_id'])
     _, mae, mse = model.evaluate(test_ds)
@@ -132,6 +133,6 @@ def objective(trial):
 
 if __name__ == "__main__":
     study = optuna.create_study(study_name=f'optimizing_parameters_{variable}_{state}_pareto',
-                                storage=f'sqlite:///data_driven/optimize/db/optimizing_parameters_state_{state}.db',
+                                storage=f'sqlite:///data_driven/optimize/db/optimizing_parameters_state_{state}_pareto.db',
                                 load_if_exists=True, directions=['minimize'] * 2)
     study.optimize(objective, n_trials=1)
