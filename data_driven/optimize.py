@@ -113,7 +113,8 @@ def create_layout(train_data, val_data, fig_type, name_train, name_val, xaxis_ti
 
 
 def plot_loss_metric(history, params, _trial_id):
-    kz, lr, a = params['kernel_size'], params['learning_rate'], params['alpha']
+    kz_w, kz_h, lr, a = params['kernel_size_w'], params['kernel_size_h'], params['learning_rate'], params['alpha']
+    kz = (kz_w, kz_h)
     train_loss = history.history['loss']
     val_loss = history.history['val_loss']
     train_mae = history.history['mean_absolute_error']
@@ -133,7 +134,6 @@ def objective(trial):
     early_stop = EarlyStopping(monitor='val_loss', patience=5, mode='auto', verbose=1)
     model.compile(optimizer=optimizer, loss=tf.keras.losses.MeanSquaredError(),
                   metrics=[tf.keras.losses.MeanAbsoluteError(), tf.keras.losses.MeanSquaredError()])
-    model.summary()
     history = model.fit(train_ds, validation_data=valid_ds, epochs=EPOCHS, callbacks=[early_stop], verbose=0)
     plot_loss_metric(history, trial.__dict__['_cached_frozen_trial'].params, trial.__dict__['_trial_id'])
     _, mae, mse = model.evaluate(test_ds)
