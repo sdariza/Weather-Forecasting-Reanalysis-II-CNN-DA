@@ -1,3 +1,4 @@
 *.nc
 data_assimilation/plots/**/*.png
 *.npy
+.idea/
