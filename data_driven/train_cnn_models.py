@@ -21,6 +21,7 @@ variable = args.variable
 EPOCHS = 100
 BATCH_SIZE = 32
 
+state, variable = 6, 'air'
 
 def create_model(alpha, kernel_size):
     inputs = tf.keras.layers.Input(shape=(73, 144, 1), name='input')
@@ -164,14 +165,27 @@ def plot_loss_metric(history):
 
 
 if __name__ == "__main__":
-    df_best_parameters = pd.read_csv('./data_driven/optimize/best_cnn_params.csv')
-    best_parameters = df_best_parameters[(df_best_parameters['state'] == state) & (
-        df_best_parameters['variable'] == variable)]
-    alpha, kernel_size, learning_rate = (best_parameters[[
-                                         'alpha', 'kernel_size', 'learning_rate']].values)[0]
+    # df_best_parameters = pd.read_csv('./data_driven/optimize/best_cnn_params.csv')
+    # best_parameters = df_best_parameters[(df_best_parameters['state'] == state) & (
+    #     df_best_parameters['variable'] == variable)]
+    # alpha, kernel_size, learning_rate = (best_parameters[[
+    #                                      'alpha', 'kernel_size', 'learning_rate']].values)[0]
 
+    # train_ds, valid_ds = get_data()
+    # model = create_model(alpha=alpha, kernel_size=eval(kernel_size))
+    # model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+    #               loss=tf.keras.losses.MeanSquaredError(), metrics=tf.keras.losses.MeanAbsoluteError())
+    # early_stop = EarlyStopping(
+    #     monitor='val_loss', patience=5, mode='auto', verbose=1)
+    # history = model.fit(train_ds, validation_data=valid_ds,
+    #                     epochs=EPOCHS, callbacks=[early_stop], verbose=1)
+    # model.save(f'./data_driven/cnn-models/{state}/{variable}{state}.h5')
+    # plot_loss_metric(history=history)
+
+
+    alpha, kernel_size, learning_rate = 0.04, (4,4), 0.0002802720366666156
     train_ds, valid_ds = get_data()
-    model = create_model(alpha=alpha, kernel_size=eval(kernel_size))
+    model = create_model(alpha=alpha, kernel_size=kernel_size)
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
                   loss=tf.keras.losses.MeanSquaredError(), metrics=tf.keras.losses.MeanAbsoluteError())
     early_stop = EarlyStopping(

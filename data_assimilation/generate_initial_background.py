@@ -28,7 +28,7 @@ start = iris.time.PartialDateTime(year=2023, month=1, day=1)
 
 query = iris.Constraint(time=lambda cell: start == cell.point)
 
-xb = xb.extract(query).data.data.flatten()
+xb = xb.extract(query).data.data.flatten() - 273.15
 
 model = [tf.keras.models.load_model(
     f'./data_driven/cnn-models/{state}/{VARIABLE}{state}.h5', compile=False) for state in [0, 6, 12, 18]]

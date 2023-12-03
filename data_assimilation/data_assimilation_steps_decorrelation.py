@@ -21,7 +21,7 @@ import pickle
 
 
 
-print(iris.load_cube('./data/test-data/6/air6.nc'))
+
 nc_data = []
 for state in [0,6,12,18]:
     nc_data.append(iris.load_cube(f'./data/test-data/{state}/{VARIABLE}{state}.nc'))
@@ -113,7 +113,7 @@ Xa = np.array(Xb0.copy()).astype('float32')
 err_a = []
 err_b = []
 print("Getting decorrelation matrix...")
-L = np.load('./data_assimilation/decorrelation_matrices/decorrelation_r15.npy')
+L = np.load('./data_assimilation/decorrelation_matrices/decorrelation_r5.npy')
 print("Data assimilation steps...")
 for day in range(NUMBER_OF_ASSIMILATION_CYCLES-1):
     print(f'Day:{day}')

@@ -17,11 +17,11 @@ args = parser.parse_args()
 state = args.state
 variable = args.variable
 
-best_model = tf.keras.models.load_model(f'./cnn-models/{state}/{variable}{state}.h5', compile=False)
+best_model = tf.keras.models.load_model(f'./data_driven/cnn-models/{state}/{variable}{state}.h5', compile=False)
 
 
-nc_t_i = nc.Dataset(f'./test-data/{state}/{variable}{state}.nc')
-nc_t_j = nc.Dataset(f'./test-data/{state}/{variable}{state}.nc')
+nc_t_i = nc.Dataset(f'./data/test-data/{state}/{variable}{state}.nc')
+nc_t_j = nc.Dataset(f'./data/test-data/{state}/{variable}{state}.nc')
 units = nc_t_i[f'{variable}'].units
 X = nc_t_i.variables[f'{variable}'][:].data
 Y = nc_t_j.variables[f'{variable}'][:].data
@@ -70,7 +70,7 @@ for i in np.random.randint(0, len(X), 10):
 
     m.ax = ax[1]
     m.drawcoastlines(linewidth=0.5)
-
+    
     cax = m.contourf(lon, lat, best_model.predict(tf.reshape(
         X[i], [1, 73, 144, 1]))[0, ..., 0], levels=100)
 
