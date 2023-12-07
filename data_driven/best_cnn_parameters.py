@@ -1,26 +1,37 @@
 import warnings
 import optuna
 import pandas as pd
+import numpy as np
+
 
 warnings.filterwarnings("ignore")
 
 states = [0, 6, 12, 18]
 variables = ['air', 'vwnd', 'uwnd']
 
-best_trial_dfs = []
+best_trials_df = []
+for variable in ['air', 'vwnd', 'uwnd']:
+    for state in [0, 6, 12, 18]:
+        study = optuna.load_study(study_name=f'optimizing_parameters_{variable}_{state}_pareto',
+                                  storage=f'sqlite:///data_driven/optimize/db/optimizing_parameters_state_{state}_pareto.db')
+        best_trials = study.best_trials
+        if len(best_trials) > 1:
+            res = []
+            for best_trial in best_trials:
+                best_trial_values = best_trial.values
+                if best_trial_values is not None:
+                    if np.inf not in best_trial_values:
+                        res.append(best_trial_values+[best_trial.number])
+            res = np.array(res)
+            df = pd.DataFrame(res).sort_values(by=[0, 1])
+            best_params = optuna.Trial(
+                study=study, trial_id=int(df.iloc[0, -1])).params
+        else:
+            best_params = best_trials[0].params
+        best_params['variable'] = variable
+        best_params['state'] = state
+        print(best_params)
+        best_trials_df.append(best_params)
 
-for state in states:
-    for variable in variables:
-        study = optuna.load_study(study_name=f'optimizing_parameters_{variable}_{state}', storage=f'sqlite:///optimize/db/optimizing_parameters_state_{state}.db')
-        best_trial_id = study.best_trial.number
-        best_trial_value = study.best_trial.value
-        trials_df = study.trials_dataframe()
-        best_trial_df = trials_df[trials_df['number'] == best_trial_id]
-        best_trial_df = best_trial_df[['value', 'params_alpha', 'params_kernel_size', 'params_learning_rate']]
-        best_trial_df['state'] = state
-        best_trial_df['variable'] = variable
-        best_trial_dfs.append(best_trial_df)
-
-final_df = pd.concat(best_trial_dfs, ignore_index=True)
-
-final_df.to_csv('./optimize/best_cnn_params.csv', index=False)
+pd.DataFrame(best_trials_df).to_csv(
+    './data_driven/optimize/best_cnn_params.csv', index=False)
