@@ -27,10 +27,10 @@ def create_optimizer(trial):
     return optimizer
 
 
-def get_data():
-    train_ds = tf.data.Dataset.load(f'./data/tf_data_training/{state}/train_{variable}_{state}')
-    valid_ds = tf.data.Dataset.load(f'./data/tf_data_training/{state}/valid_{variable}_{state}')
-    test_ds = tf.data.Dataset.load(f'./data/tf_data_training/{state}/test_{variable}_{state}')
+def get_data(variable_train, state_train):
+    train_ds = tf.data.Dataset.load(f'./data/tf_data_training/{state_train}/train_{variable_train}_{state_train}')
+    valid_ds = tf.data.Dataset.load(f'./data/tf_data_training/{state_train}/valid_{variable_train}_{state_train}')
+    test_ds = tf.data.Dataset.load(f'./data/tf_data_training/{state_train}/test_{variable_train}_{state_train}')
     return train_ds, valid_ds, test_ds
 
 
@@ -128,7 +128,7 @@ def plot_loss_metric(history, params, _trial_id):
 
 
 def objective(trial):
-    train_ds, valid_ds, test_ds = get_data()
+    train_ds, valid_ds, test_ds = get_data(variable, state)
     model = create_model(trial)
     optimizer = create_optimizer(trial)
     early_stop = EarlyStopping(monitor='val_loss', patience=5, mode='auto', verbose=1)
