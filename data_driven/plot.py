@@ -17,7 +17,7 @@ args = parser.parse_args()
 state = args.state
 variable = args.variable
 
-best_model = tf.keras.models.load_model(f'./data_drive/cnn-models/{state}/{variable}{state}.h5', compile=False)
+best_model = tf.keras.models.load_model(f'./data_driven/cnn-models/{state}/{variable}{state}.h5', compile=False)
 
 
 nc_t_i = nc.Dataset(f'./data/test-data/{state}/{variable}{state}.nc')
