@@ -2,9 +2,12 @@
 This code generate simulations steps for Data Assimilation 
 process based on : Modified Cholesky Decomposition
 """
-from generate_initial_background import NUMBER_OF_VARIABLES, VARIABLE
-
 import warnings
+import argparse
+from generate_initial_background import NUMBER_OF_VARIABLES
+
+from mpl_toolkits.basemap import Basemap
+from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 import imageio
 import tensorflow as tf
@@ -12,19 +15,20 @@ import iris
 import numpy as np
 
 np.random.seed(123)
-import datetime
-import cftime
-from sklearn.linear_model import Ridge
-import scipy.sparse as spa
-from sklearn.metrics import mean_squared_error
 
 warnings.filterwarnings("ignore")
-import pickle
+parser = argparse.ArgumentParser(prefix_chars='--')
+parser.add_argument('--variable', type=str, help='Variable to predict')
 
-print(iris.load_cube('./data/test-data/6/air6.nc'))
+
+args = parser.parse_args()
+
+VARIABLE = args.variable
+
 nc_data = []
 for state in [0, 6, 12, 18]:
-    nc_data.append(iris.load_cube(f'./data/test-data/{state}/{VARIABLE}{state}.nc'))
+    nc_data.append(iris.load_cube(
+        f'./data/test-data/{state}/{VARIABLE}{state}.nc'))
 nc_data = [iris.load_cube(f'./data/test-data/{state}/{VARIABLE}{state}.nc')
            for state in [0, 6, 12, 18]]
 start = iris.time.PartialDateTime(year=2023, month=1, day=1)
@@ -35,7 +39,6 @@ data_state = [nc_data_i.data.data for nc_data_i in nc_data]
 date_time = [nc_data_i.coord('time') for nc_data_i in nc_data]
 time_units = date_time[0][0].units
 del nc_data
-from mpl_toolkits.basemap import Basemap
 
 if VARIABLE == 'air':
     data_state = [nc_data_i - 273.15 for nc_data_i in data_state]
@@ -73,34 +76,43 @@ def plot(xb, xt, xa, day, state):
     fig.set_size_inches(18, 8)
 
     for i in range(3):  # Itera para configurar cada mapa
-        m = Basemap(projection='robin', resolution='c', lat_0=lat[0][0], lon_0=lon[0][0], ax=ax[i])
+        m = Basemap(projection='robin', resolution='c',
+                    lat_0=lat[0][0], lon_0=lon[0][0], ax=ax[i])
         m.drawcoastlines(linewidth=0.5)
-        cax = m.contourf(lon, lat, (xt if i == 0 else xb if i == 1 else xa).reshape(73, 144), latlon=True, levels=100)
+        cax = m.contourf(lon, lat, (xt if i == 0 else xb if i == 1 else xa).reshape(
+            73, 144), latlon=True, levels=100)
 
         # Agrega una barra de colores en la parte inferior de cada mapa
         cbar = plt.colorbar(cax, ax=ax[i], location='bottom')
         cbar.set_label(f'°C')
 
-        m.drawparallels(np.arange(min_lat, max_lat + 1, 20), labels=[1, 0, 0, 0], linewidth=0.2)
-        m.drawmeridians(np.arange(min_lon, max_lon + 1, 55), labels=[0, 0, 0, 1], linewidth=0.2)
-        ax[i].set_title('Real state' if i == 0 else 'Background state' if i == 1 else 'Estimated state')
+        m.drawparallels(np.arange(min_lat, max_lat + 1, 20),
+                        labels=[1, 0, 0, 0], linewidth=0.2)
+        m.drawmeridians(np.arange(min_lon, max_lon + 1, 55),
+                        labels=[0, 0, 0, 1], linewidth=0.2)
+        ax[i].set_title(
+            'Real state' if i == 0 else 'Background state' if i == 1 else 'Estimated state')
 
     plt.tight_layout()
     fig.suptitle('Data Assimilation - Forecasting Global Weather', y=0.73)
-    plt.savefig(f'./data_assimilation/plots/{VARIABLE}/subplot_{day}{state}.png')
+    plt.savefig(
+        f'./data_assimilation/plots/{VARIABLE}/subplot_{day}{state}.png')
     plt.close(fig)
-    images.append(imageio.imread(f'./data_assimilation/plots/{VARIABLE}/subplot_{day}{state}.png'))
+    images.append(imageio.imread(
+        f'./data_assimilation/plots/{VARIABLE}/subplot_{day}{state}.png'))
 
 
 NUMBER_OF_MEMBERS = 50
 x0 = data_state[0][0].flatten()
-Xb0 = np.load(f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}.npy')
+Xb0 = np.load(
+    f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}.npy')
 
 P = 0.05
 M = round(P * NUMBER_OF_VARIABLES)
 OBSERVATION_ERROR = 0.01
 R = (OBSERVATION_ERROR ** 2) * np.eye(M, M)
-Rinv = 1 / (OBSERVATION_ERROR ** 2) * np.ones((M,))  # covariance matrix of data errors
+# covariance matrix of data errors
+Rinv = 1 / (OBSERVATION_ERROR ** 2) * np.ones((M,))
 NUMBER_OF_ASSIMILATION_CYCLES = len(data_state[0])
 print(NUMBER_OF_ASSIMILATION_CYCLES)
 Xa = np.array(Xb0.copy()).astype('float32')
@@ -141,7 +153,8 @@ for day in range(NUMBER_OF_ASSIMILATION_CYCLES - 1):
         err_a.append(mean_squared_error(xt_, xa))
         # print(xb.shape, xt_.shape, xa.shape)
         plot(xb, xt_, xa, day, state)
-imageio.mimsave(f'./data_assimilation/plots/{VARIABLE}/predictions.gif', images, duration=1000, loop=0)
+imageio.mimsave(
+    f'./data_assimilation/plots/{VARIABLE}/predictions.gif', images, duration=1000, loop=0)
 
 fig = plt.figure()
 plt.plot(np.log(err_b), '-ob', label='Background error')
@@ -150,6 +163,7 @@ plt.plot(np.log(err_a), '-or', label='Analysis error')
 plt.legend()
 plt.xlabel('Assimilation step')
 plt.ylabel('$ln(MAE)$')
-plt.savefig(f'./data_assimilation/plots/{VARIABLE}/backgroundAnalysisError_id{1}.png')
+plt.savefig(
+    f'./data_assimilation/plots/{VARIABLE}/backgroundAnalysisError_id{1}.png')
 plt.show()
 plt.close(fig)

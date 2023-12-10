@@ -1,35 +1,36 @@
+import argparse
 import warnings
 import tensorflow as tf
 import iris
 import numpy as np
 
 np.random.seed(123)
-import datetime
-import cftime
 
 warnings.filterwarnings("ignore")
-import pickle
 
-# parser = argparse.ArgumentParser(prefix_chars='--')
-# parser.add_argument('--start', type=str,
-#                     help='Initial day to generate initial ensemble : DD-MM-YYYY')
-# parser.add_argument('--variable', type=str, help='Variable to predict')
+parser = argparse.ArgumentParser(prefix_chars='--')
+parser.add_argument('--start', type=str,
+                    help='Initial day to generate initial ensemble : DD-MM-YYYY')
+parser.add_argument('--variable', type=str, help='Variable to predict')
 
 
-# args = parser.parse_args()
-# START = args.variable.start
+args = parser.parse_args()
+START = args.start
 
-# VARIABLE = args.variable
-
-VARIABLE = 'air'
+VARIABLE = args.variable
 
 xb = iris.load_cube(f"./data/test-data/0/{VARIABLE}{0}.nc")
 
 start = iris.time.PartialDateTime(year=2023, month=1, day=1)
 
 query = iris.Constraint(time=lambda cell: start == cell.point)
+xb = xb.extract(query).data.data
 
-xb = (xb.extract(query).data.data - 273.15)[..., np.newaxis]
+if VARIABLE == 'air':
+    xb = xb - 273.15
+
+xb = xb[..., np.newaxis]
+
 model = [tf.keras.models.load_model(
     f'./data_driven/cnn-models/{state}/{VARIABLE}{state}.h5', compile=False) for state in [0, 6, 12, 18]]
 
@@ -70,4 +71,5 @@ def create_initial_ensemble(x_b, number_of_members):
 
 if __name__ == "__main__":
     Xb0 = create_initial_ensemble(xb, 50)
-    np.save(f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}.npy', Xb0)
+    np.save(
+        f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}.npy', Xb0)
