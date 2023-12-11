@@ -7,7 +7,7 @@ import argparse
 from generate_initial_background import NUMBER_OF_VARIABLES
 
 from mpl_toolkits.basemap import Basemap
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 import matplotlib.pyplot as plt
 import imageio
 import tensorflow as tf
@@ -107,7 +107,7 @@ x0 = data_state[0][0].flatten()
 Xb0 = np.load(
     f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}.npy')
 
-P = 0.05
+P = 0.1
 M = round(P * NUMBER_OF_VARIABLES)
 OBSERVATION_ERROR = 0.01
 R = (OBSERVATION_ERROR ** 2) * np.eye(M, M)
@@ -120,7 +120,7 @@ Xa = np.array(Xb0.copy()).astype('float32')
 err_a = []
 err_b = []
 print("Getting decorrelation matrix...")
-L = np.load('./data_assimilation/decorrelation_matrices/decorrelation_r5.npy')
+L = np.load('./data_assimilation/decorrelation_matrices/decorrelation_r15.npy')
 print("Data assimilation steps...")
 for day in range(NUMBER_OF_ASSIMILATION_CYCLES - 1):
     print(f'Day:{day}')
@@ -138,7 +138,7 @@ for day in range(NUMBER_OF_ASSIMILATION_CYCLES - 1):
         # Create observation - data for the assimilation process
         H = np.random.permutation(np.arange(NUMBER_OF_VARIABLES))[
             :M]  # we observe a different part of the domain
-        err_b.append(mean_squared_error(xt_, xb))
+        err_b.append(mean_absolute_error(xt_, xb))
         y = np.random.multivariate_normal(xt_[H], R)
 
         # Assimilation step
@@ -150,7 +150,7 @@ for day in range(NUMBER_OF_ASSIMILATION_CYCLES - 1):
         Dx = Pb[:, H] @ Za
         Xa = Xb + Dx.T
         xa = np.mean(Xa, axis=0)
-        err_a.append(mean_squared_error(xt_, xa))
+        err_a.append(mean_absolute_error(xt_, xa))
         # print(xb.shape, xt_.shape, xa.shape)
         plot(xb, xt_, xa, day, state)
 imageio.mimsave(

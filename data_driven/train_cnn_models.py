@@ -73,7 +73,7 @@ if __name__ == "__main__":
     best_parameters = df_best_parameters[(df_best_parameters['state'] == state) & (
             df_best_parameters['variable'] == variable)]
     a, kernel_size_w, kernel_size_h, learning_rate = (best_parameters[[
-        'alpha', 'kernel_size_w', 'kernel_size_h', 'learning_rate']].values)[0]
+        'alpha', 'kz_w', 'kz_h', 'lr']].values)[0]
     kernel_size = (int(kernel_size_w), int(kernel_size_h))
     train_ds, valid_ds, _ = get_data(variable, state)
     model = create_model(kz=kernel_size, alpha=a)
