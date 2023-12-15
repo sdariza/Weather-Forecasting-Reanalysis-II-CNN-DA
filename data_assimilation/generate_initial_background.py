@@ -62,7 +62,7 @@ def create_initial_ensemble(x_b, number_of_members):
         np.array: initial ensemble Xb0
     """
     X_b0 = tf.convert_to_tensor([x_b for _ in np.arange(number_of_members)])
-    for k_t in np.arange(1, 61):
+    for k_t in np.arange(1, 181):
         t_h = (k_t - 1) % 4
         error = np.random.randn(number_of_members, N_LATS, N_LONS, 1)
         X_b0 = tf.convert_to_tensor(forecast(X_b0 + error, t_h))

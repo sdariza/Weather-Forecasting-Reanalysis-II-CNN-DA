@@ -4,11 +4,8 @@ process based on : Modified Cholesky Decomposition
 """
 import warnings
 import argparse
-from generate_initial_background import NUMBER_OF_VARIABLES
-
-from mpl_toolkits.basemap import Basemap
-from sklearn.metrics import mean_absolute_error
 import matplotlib.pyplot as plt
+from sklearn.metrics import mean_absolute_error
 import imageio
 import tensorflow as tf
 import iris
@@ -20,10 +17,10 @@ warnings.filterwarnings("ignore")
 parser = argparse.ArgumentParser(prefix_chars='--')
 parser.add_argument('--variable', type=str, help='Variable to predict')
 
-
 args = parser.parse_args()
 
 VARIABLE = args.variable
+NUMBER_OF_VARIABLES = 73 * 144
 
 nc_data = []
 for state in [0, 6, 12, 18]:
@@ -31,14 +28,18 @@ for state in [0, 6, 12, 18]:
         f'./data/test-data/{state}/{VARIABLE}{state}.nc'))
 nc_data = [iris.load_cube(f'./data/test-data/{state}/{VARIABLE}{state}.nc')
            for state in [0, 6, 12, 18]]
+
 start = iris.time.PartialDateTime(year=2023, month=1, day=1)
-end = iris.time.PartialDateTime(year=2023, month=1, day=10)
+end = iris.time.PartialDateTime(year=2023, month=1, day=8)
+
 query = iris.Constraint(time=lambda cell: start <= cell.point <= end)
 nc_data = [nc_data_i.extract(query) for nc_data_i in nc_data]
 data_state = [nc_data_i.data.data for nc_data_i in nc_data]
 date_time = [nc_data_i.coord('time') for nc_data_i in nc_data]
 time_units = date_time[0][0].units
+unit_data = nc_data[0].units
 del nc_data
+from mpl_toolkits.basemap import Basemap
 
 if VARIABLE == 'air':
     data_state = [nc_data_i - 273.15 for nc_data_i in data_state]
@@ -73,30 +74,31 @@ images = []
 
 def plot(xb, xt, xa, day, state):
     fig, ax = plt.subplots(nrows=1, ncols=3, sharey=True)
-    fig.set_size_inches(18, 8)
+    fig.set_size_inches(22, 8)
 
     for i in range(3):  # Itera para configurar cada mapa
         m = Basemap(projection='robin', resolution='c',
                     lat_0=lat[0][0], lon_0=lon[0][0], ax=ax[i])
         m.drawcoastlines(linewidth=0.5)
-        cax = m.contourf(lon, lat, (xt if i == 0 else xb if i == 1 else xa).reshape(
-            73, 144), latlon=True, levels=100)
+        x = (xt if i == 0 else xb if i == 1 else xa).reshape(
+            73, 144)
+        cax = m.contourf(lon, lat, x if VARIABLE != 'air' else x + 273.15, latlon=True, cmap='Blues')
 
         # Agrega una barra de colores en la parte inferior de cada mapa
-        cbar = plt.colorbar(cax, ax=ax[i], location='bottom')
-        cbar.set_label(f'°C')
+        cbar = plt.colorbar(cax, ax=ax[i], location='bottom', pad=0.1)
+        cbar.set_label(f'{unit_data}')
 
         m.drawparallels(np.arange(min_lat, max_lat + 1, 20),
                         labels=[1, 0, 0, 0], linewidth=0.2)
-        m.drawmeridians(np.arange(min_lon, max_lon + 1, 55),
-                        labels=[0, 0, 0, 1], linewidth=0.2)
+        m.drawmeridians(np.arange(min_lon, max_lon + 1, 80),
+                        labels=[0, 0, 0, 1], linewidth=0.2, labelstyle='N/S')
         ax[i].set_title(
             'Real state' if i == 0 else 'Background state' if i == 1 else 'Estimated state')
 
-    plt.tight_layout()
-    fig.suptitle('Data Assimilation - Forecasting Global Weather', y=0.73)
     plt.savefig(
-        f'./data_assimilation/plots/{VARIABLE}/subplot_{day}{state}.png')
+        f'./data_assimilation/plots/{VARIABLE}/subplot_{day}{state}.png', bbox_inches='tight')
+    plt.savefig(
+        f'./data_assimilation/plots/{VARIABLE}/subplot_{day}{state}.pdf', bbox_inches='tight')
     plt.close(fig)
     images.append(imageio.imread(
         f'./data_assimilation/plots/{VARIABLE}/subplot_{day}{state}.png'))
@@ -107,7 +109,7 @@ x0 = data_state[0][0].flatten()
 Xb0 = np.load(
     f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}.npy')
 
-P = 0.1
+P = 0.07
 M = round(P * NUMBER_OF_VARIABLES)
 OBSERVATION_ERROR = 0.01
 R = (OBSERVATION_ERROR ** 2) * np.eye(M, M)
@@ -120,7 +122,7 @@ Xa = np.array(Xb0.copy()).astype('float32')
 err_a = []
 err_b = []
 print("Getting decorrelation matrix...")
-L = np.load('./data_assimilation/decorrelation_matrices/decorrelation_r15.npy')
+L = np.load('./data_assimilation/decorrelation_matrices/decorrelation_r10.npy')
 print("Data assimilation steps...")
 for day in range(NUMBER_OF_ASSIMILATION_CYCLES - 1):
     print(f'Day:{day}')
