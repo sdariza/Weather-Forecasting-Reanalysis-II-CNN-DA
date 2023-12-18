@@ -1,26 +1,28 @@
 import warnings
 import optuna
 import pandas as pd
+import numpy as np
+
 
 warnings.filterwarnings("ignore")
 
 states = [0, 6, 12, 18]
 variables = ['air', 'vwnd', 'uwnd']
 
-best_trial_dfs = []
+best_trials_df = []
+for variable in ['air', 'vwnd', 'uwnd']:
+    for state in [0, 6, 12, 18]:
+        study = None
+        dict_data = {}
+        study = optuna.load_study(study_name=f'optimizing_parameters_{variable}_{state}_pareto',
+                                  storage=f'sqlite:///data_driven/optimize/db/optimizing_parameters_state_{state}_pareto.db')
+        df = study.trials_dataframe()
+        df = df.sort_values(by=['duration', 'values_0', 'values_1'], ascending=[
+                            False, True, True])
+        print(df.iloc[0])
+        dict_data['alpha'], dict_data['kz_h'], dict_data['kz_w'], dict_data['lr'] = df.iloc[0, 6:10].values
+        dict_data['variable'], dict_data['state'] = variable, state
+        best_trials_df.append(dict_data)
 
-for state in states:
-    for variable in variables:
-        study = optuna.load_study(study_name=f'optimizing_parameters_{variable}_{state}', storage=f'sqlite:///optimize/db/optimizing_parameters_state_{state}.db')
-        best_trial_id = study.best_trial.number
-        best_trial_value = study.best_trial.value
-        trials_df = study.trials_dataframe()
-        best_trial_df = trials_df[trials_df['number'] == best_trial_id]
-        best_trial_df = best_trial_df[['value', 'params_alpha', 'params_kernel_size', 'params_learning_rate']]
-        best_trial_df['state'] = state
-        best_trial_df['variable'] = variable
-        best_trial_dfs.append(best_trial_df)
-
-final_df = pd.concat(best_trial_dfs, ignore_index=True)
-
-final_df.to_csv('./optimize/best_cnn_params.csv', index=False)
+pd.DataFrame(best_trials_df).to_csv(
+    './data_driven/optimize/best_cnn_params.csv', index=False)

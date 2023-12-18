@@ -1,5 +1,6 @@
 *.nc
-data_assimilation/plots/**/*.png
+data_assimilation/plots/**/subplot*.png
+data_assimilation/plots/**/subplot*.pdf
 *.npy
 .idea/
 tf_data_training/
