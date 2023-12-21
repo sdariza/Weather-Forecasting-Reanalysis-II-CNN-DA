@@ -2,13 +2,17 @@
 This code generate simulations steps for (LEnKF) Data Assimilation
 process based on : Decorrelation matrix
 """
+import sys
+
+sys.path.append(r'C:\Users\Lab6k\Desktop\Weather-Forecasting-Reanalysis-II-CNN-DA')
+
 import warnings
 import argparse
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
-from commons import load_data, forecast_ensemble, load_model, observation_cov_matrix, plot, NUMBER_OF_VARIABLES, \
-    plot_background_analysis_error
+from data_assimilation.commons import load_data, forecast_ensemble, load_model, observation_cov_matrix, \
+    NUMBER_OF_VARIABLES
 import numpy as np
-import imageio
+import pandas as pd
 
 np.random.seed(123)
 
@@ -24,6 +28,7 @@ args = parser.parse_args()
 
 VARIABLE = args.variable
 NUMBER_OF_MEMBERS = args.n_members
+print(args.p_obs)
 P = args.p_obs / 100
 r = args.r
 
@@ -31,14 +36,12 @@ data_state, time_units, unit_data = load_data(variable=VARIABLE)
 
 model = load_model(variable=VARIABLE)
 
-images = []
-
 Xb0 = np.load(
-    f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}.npy')
+    f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}_{NUMBER_OF_MEMBERS}.npy')
 
 M, R, _ = observation_cov_matrix(P)
 
-NUMBER_OF_ASSIMILATION_CYCLES = len(data_state[0])
+NUMBER_OF_ASSIMILATION_STEPS = len(data_state[0])
 
 Xa = np.array(Xb0.copy()).astype('float32')
 
@@ -48,9 +51,7 @@ print("Getting decorrelation matrix...")
 L = np.load(f'./data_assimilation/decorrelation_matrices/decorrelation_r{r}.npy')
 print("Data assimilation steps...")
 
-from mpl_toolkits.basemap import Basemap
-
-for day in range(NUMBER_OF_ASSIMILATION_CYCLES - 1):
+for day in range(NUMBER_OF_ASSIMILATION_STEPS - 1):
     print(f'Day:{day}')
     for state in [0, 1, 2, 3]:
         NEXT_STATE = (state + 1) % 4
@@ -82,8 +83,17 @@ for day in range(NUMBER_OF_ASSIMILATION_CYCLES - 1):
         err_a[0].append(mean_absolute_error(xt_, xa))
         err_a[1].append(mean_squared_error(xt_, xa) ** 0.5)
         err_a[2].append(mean_absolute_percentage_error(xt_, xa))
-        plot(Basemap, xb, xt_, xa, day, state, VARIABLE, images, unit_data)
-imageio.mimsave(
-    f'./data_assimilation/plots/{VARIABLE}/predictions.gif', images, duration=1000, loop=0)
 
-plot_background_analysis_error(err_b, err_a, VARIABLE)
+df = pd.read_excel('./experiments/EnKF-DM/EnKF_DM.xlsx')
+df = pd.concat(
+    [df, pd.DataFrame(
+        {'radius': r, 'n_members': NUMBER_OF_MEMBERS, 'p_obs': P * 100, 'variable': VARIABLE, 'algorithm': 'EnKF-DM',
+         'b_err': [err_b],
+         'a_err': [err_a],
+         'mean_b_err': [[np.array(err_b[0]).mean(), np.array(err_b[1]).mean(), np.array(err_b[2]).mean()]],
+         'mean_a_err': [[np.array(err_a[0]).mean(), np.array(err_a[1]).mean(), np.array(err_a[2]).mean()]],
+         'variance_b_err': [[np.array(err_b[0]).var(), np.array(err_b[1]).var(), np.array(err_b[2]).var()]],
+         'variance_a_err': [[np.array(err_a[0]).var(), np.array(err_a[1]).var(), np.array(err_a[2]).var()]],
+         })],
+    ignore_index=True)
+df.to_excel('./experiments/EnKF-DM/EnKF_DM.xlsx', index=False)

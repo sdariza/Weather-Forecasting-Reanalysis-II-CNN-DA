@@ -9,19 +9,17 @@ np.random.seed(123)
 warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser(prefix_chars='--')
-parser.add_argument('--start', type=str,
-                    help='Initial day to generate initial ensemble : DD-MM-YYYY')
 parser.add_argument('--variable', type=str, help='Variable to predict')
-
+parser.add_argument('--n_members', type=int, help='Number of ensemble members')
 
 args = parser.parse_args()
-START = args.start
+N_MEMBERS = args.n_members
 
 VARIABLE = args.variable
 
 xb = iris.load_cube(f"./data/test-data/0/{VARIABLE}{0}.nc")
 
-start = iris.time.PartialDateTime(year=2023, month=1, day=1)
+start = iris.time.PartialDateTime(year=2023, month=11, day=1)
 
 query = iris.Constraint(time=lambda cell: start == cell.point)
 xb = xb.extract(query).data.data
@@ -70,6 +68,6 @@ def create_initial_ensemble(x_b, number_of_members):
 
 
 if __name__ == "__main__":
-    Xb0 = create_initial_ensemble(xb, 50)
+    Xb0 = create_initial_ensemble(xb, N_MEMBERS)
     np.save(
-        f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}.npy', Xb0)
+        f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}_{N_MEMBERS}.npy', Xb0)
