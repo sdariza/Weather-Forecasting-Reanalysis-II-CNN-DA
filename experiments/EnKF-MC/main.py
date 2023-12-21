@@ -50,7 +50,6 @@ err_a = [[], [], []]
 err_b = [[], [], []]
 
 for day in range(NUMBER_OF_ASSIMILATION_CYCLES - 1):
-    print(f'Day:{day}')
     for state in [0, 1, 2, 3]:
         NEXT_STATE = (state + 1) % 4
         if NEXT_STATE == 0:
