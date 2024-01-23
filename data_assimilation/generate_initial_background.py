@@ -1,3 +1,4 @@
+from commons import load_model
 import argparse
 import warnings
 import tensorflow as tf
@@ -29,8 +30,7 @@ if VARIABLE == 'air':
 
 xb = xb[..., np.newaxis]
 
-model = [tf.keras.models.load_model(
-    f'./data_driven/cnn-models/{state}/{VARIABLE}{state}.h5', compile=False) for state in [0, 6, 12, 18]]
+model = load_model(variable=VARIABLE)
 
 N_LATS = 73
 N_LONS = 144
@@ -47,7 +47,7 @@ def forecast(X_h, state_h: int):
     Returns:
         np.array: prediction X̂_h+1
     """
-    return model[state_h].predict(X_h)
+    return model[state_h].predict(X_h, verbose=2)
 
 
 def create_initial_ensemble(x_b, number_of_members):
@@ -68,6 +68,7 @@ def create_initial_ensemble(x_b, number_of_members):
 
 
 if __name__ == "__main__":
+    print(f'Generating initial ensemble with of {VARIABLE} with {N_MEMBERS} members')
     Xb0 = create_initial_ensemble(xb, N_MEMBERS)
     np.save(
         f'./data_assimilation/InitialBackground/initialBackground_{VARIABLE}_{N_MEMBERS}.npy', Xb0)

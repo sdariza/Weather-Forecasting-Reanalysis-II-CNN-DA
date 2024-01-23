@@ -8,8 +8,6 @@ import numpy as np
 N_LATS = 73
 N_LONS = 144
 
-j_temp = list(range(-(N_LONS//2), (N_LONS//2)))  # To center any column: (i,0)
-
 
 def get_distances_matrix():
     """Compute distances matrix "L" based on Euclidian distance
