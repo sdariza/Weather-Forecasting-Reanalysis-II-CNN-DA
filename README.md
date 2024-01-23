@@ -1,5 +1,14 @@
 # Weather-Forecasting-Reanalysis-II-CNN-DA
 
+## Air Temperature
+![img](data_assimilation/plots/air/predictions.gif)
+
+## V-wind component
+![img](data_assimilation/plots/vwnd/predictions.gif)
+
+## U-wind component
+
+![img](data_assimilation/plots/uwnd/predictions.gif)
 ## Create and activate conda environment
 
 ```
