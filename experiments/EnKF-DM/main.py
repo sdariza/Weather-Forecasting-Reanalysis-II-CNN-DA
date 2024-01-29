@@ -90,7 +90,7 @@ for day in range(NUMBER_OF_ASSIMILATION_STEPS - 1):
 df = pd.read_excel('./experiments/EnKF-DM/EnKF_DM.xlsx')
 df = pd.concat(
     [df, pd.DataFrame(
-        {'radius': r, 'n_members': NUMBER_OF_MEMBERS, 'p_obs': P * 100, 'variable': VARIABLE, 'algorithm': 'EnKF-DM',
+        {'radius': r, 'n_members': NUMBER_OF_MEMBERS, 'p_obs': int(P * 100), 'variable': VARIABLE, 'algorithm': 'EnKF-DM',
          'b_err': [err_b],
          'a_err': [err_a],
          'time': TOTAL_TIME
